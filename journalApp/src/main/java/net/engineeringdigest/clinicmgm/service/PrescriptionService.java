@@ -1,0 +1,63 @@
+package net.engineeringdigest.clinicmgm.service;
+
+import net.engineeringdigest.clinicmgm.dto.PrescriptionRequest;
+import net.engineeringdigest.clinicmgm.entity.Doctor;
+import net.engineeringdigest.clinicmgm.entity.PatientToken;
+import net.engineeringdigest.clinicmgm.entity.Prescription;
+import net.engineeringdigest.clinicmgm.repository.DoctorRepository;
+import net.engineeringdigest.clinicmgm.repository.PatientTokenRepository;
+import net.engineeringdigest.clinicmgm.repository.PrescriptionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class PrescriptionService {
+    @Autowired
+    private PatientTokenRepository patientTokenRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
+
+    public void savePrescription(PrescriptionRequest req){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null || authentication.getPrincipal()==null){
+            throw new RuntimeException("Unauthenticated request");
+        }
+
+//        doctor id
+        Long doctorId= (Long) authentication.getDetails();
+        Optional<Doctor> doctor=doctorRepository.findById(doctorId);
+
+        if(!doctor.isPresent()){
+            throw new RuntimeException("Doctor Not Found");
+        }
+
+        PatientToken token =
+                patientTokenRepository
+                        .findByDoctorAndStatus(doctor.get(), "ONGOING")
+                        .orElseThrow(() ->
+                                new RuntimeException("No active patient")
+                        );
+
+        Prescription p = prescriptionRepository
+                .findByToken(token)
+                .orElse(new Prescription());
+
+        p.setToken(token);
+        p.setDoctor(token.getDoctor());
+        p.setMobileNumber(token.getMobileNumber());
+
+        p.setDiagnosis(req.getDiagnosis());
+        p.setMedicines(req.getMedicines());
+        p.setInstructions(req.getInstructions());
+
+        prescriptionRepository.save(p);
+    }
+}
