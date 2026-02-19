@@ -20,5 +20,6 @@ public class DoctorProfileResponse {
     private LocalTime workingStartTime;
     private LocalTime workingEndTime;
     private Integer patientInQueue;
+    private String qr_key;
     private LocalDateTime createdAt;
 }

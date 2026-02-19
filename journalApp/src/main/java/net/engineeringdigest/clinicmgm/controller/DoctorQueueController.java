@@ -103,6 +103,7 @@ public class DoctorQueueController {
                 doctor.getWorkingStartTime(),
                 doctor.getWorkingEndTime(),
                 doctor.getPatientInQueue(),
+                doctor.getQrKey(),
                 doctor.getCreatedAt()
         );
 

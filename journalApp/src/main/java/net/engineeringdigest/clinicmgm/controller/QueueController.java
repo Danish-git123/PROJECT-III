@@ -29,7 +29,8 @@ public class QueueController {
         response.put("position",token.getPosition());
         response.put("estimatedArrivalMinutes",token.getEstimatedArrivalMinutes());
 
-        return new ResponseEntity<>("Response: "+response, HttpStatus.OK);
+//        return new ResponseEntity<>("Response: "+response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/status/{tokenId}")
