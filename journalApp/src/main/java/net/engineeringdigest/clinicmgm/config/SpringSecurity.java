@@ -30,8 +30,12 @@ public class SpringSecurity {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors()
+                .and()
                 .csrf().disable()
                 .authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 .antMatchers("/api/auth/**").permitAll()
 //                .antMatchers(HttpMethod.PUT, "/hold").authenticated()
                 .antMatchers("/api/queue/**").permitAll()
