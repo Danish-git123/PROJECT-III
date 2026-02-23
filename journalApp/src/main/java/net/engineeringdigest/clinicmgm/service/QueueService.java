@@ -53,33 +53,7 @@ public class QueueService {
         return doctorRepository.findById(doctorId).orElseThrow(()->new RuntimeException("Doctor not found"));
     }
 
-    private void sendPrescription(PatientToken token,Doctor doctor) {
 
-
-        Prescription p = prescriptionRepository
-                .findByToken(token)
-                .orElseThrow(() ->
-                        new RuntimeException("Prescription not filled")
-                );
-
-        if (p.isSent()) return;
-
-        String message="Doctor Name: "+doctor.getUsername()+"\n"
-                +"Prescription Id: "+p.getId()+"\n"
-                +"Diagnosis: "+p.getDiagnosis()+"\n"
-                +"Treatment: "+p.getMedicines()+"\n"
-                +"Instructions: "+p.getInstructions();
-
-        log.info(message);
-
-        smsService.sendSms(
-                token.getMobileNumber(),
-                message
-        );
-
-        p.setSent(true);
-        prescriptionRepository.save(p);
-    }
 
 //    @Autowired
 //    private SmsService smsService;
@@ -158,7 +132,6 @@ public class QueueService {
                 .ifPresent(current -> {
                     current.setStatus("COMPLETED");
                     current.setCallStartedAt(null);
-                    sendPrescription(current,doctor);
                     patientTokenRepository.save(current);
                 });
 
@@ -170,22 +143,25 @@ public class QueueService {
                 .orElseThrow(() ->
                         new RuntimeException("No patients available"));
 
-//        Long nextTokenId = redisQueueService.popNext(doctor.getId());
-
-        /*if(nextTokenId==null){
-            throw new RuntimeException("No Patients Available");
-        }
-
-        PatientToken next = patientTokenRepository
-                .findById(nextTokenId)
-                .orElseThrow(() -> new RuntimeException("Token not found"));*/
 
 
         next.setStatus("ONGOING");
         next.setCallStartedAt(LocalDateTime.now());
+        next.setEstimatedArrivalMinutes(0);
 
 
-        patientTokenRepository.save(next);
+        List<PatientToken> remainingPatients = patientTokenRepository.findAllByDoctorAndStatus(doctor, "ISSUED");
+        int avgConsultationTime = doctor.getConsultationAvgTime();
+
+        for (PatientToken patient : remainingPatients) {
+            int updatedTime = patient.getEstimatedArrivalMinutes() - avgConsultationTime;
+
+            // Math.max ensures ki time negative (minus) mein na chala jaye
+            patient.setEstimatedArrivalMinutes(Math.max(0, updatedTime));
+        }
+
+        // Save all updated patients at once
+        patientTokenRepository.saveAll(remainingPatients);
         return next;
 
     }

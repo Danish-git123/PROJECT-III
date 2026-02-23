@@ -22,6 +22,9 @@ public interface PatientTokenRepository extends JpaRepository<PatientToken,Long>
             String status
     );
 
+    // PatientTokenRepository.java mein
+    List<PatientToken> findAllByDoctorAndStatus(Doctor doctor, String status);
+
 
     //  FIFO: next patient to call
     Optional<PatientToken>

@@ -1,5 +1,6 @@
 package net.engineeringdigest.clinicmgm.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.clinicmgm.dto.PrescriptionRequest;
 import net.engineeringdigest.clinicmgm.entity.Doctor;
 import net.engineeringdigest.clinicmgm.entity.PatientToken;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class PrescriptionService {
     @Autowired
     private PatientTokenRepository patientTokenRepository;
@@ -24,6 +26,9 @@ public class PrescriptionService {
 
     @Autowired
     private PrescriptionRepository prescriptionRepository;
+
+    @Autowired
+    private TwilioSmsService smsService;
 
     public void savePrescription(PrescriptionRequest req){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,6 +63,32 @@ public class PrescriptionService {
         p.setMedicines(req.getMedicines());
         p.setInstructions(req.getInstructions());
 
+        prescriptionRepository.save(p);
+    }
+
+    public void sendPrescription(Long tokenId){
+        Prescription p = prescriptionRepository
+                .findById(tokenId)
+                .orElseThrow(() ->
+                        new RuntimeException("Prescription not filled")
+                );
+
+        if (p.isSent()) return;
+
+        String message="Doctor Name: "+p.getDoctor().getUsername()+"\n"
+                +"Prescription Id: "+p.getId()+"\n"
+                +"Diagnosis: "+p.getDiagnosis()+"\n"
+                +"Treatment: "+p.getMedicines()+"\n"
+                +"Instructions: "+p.getInstructions();
+
+        log.info(message);
+
+        smsService.sendSms(
+                p.getMobileNumber(),
+                message
+        );
+
+        p.setSent(true);
         prescriptionRepository.save(p);
     }
 }

@@ -7,10 +7,7 @@ import net.engineeringdigest.clinicmgm.service.QueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/prescription")
@@ -25,6 +22,13 @@ public class PrescriptionController {
     public ResponseEntity<?> savePrescription(@RequestBody PrescriptionRequest request){
         prescriptionService.savePrescription(request);
         return new ResponseEntity<>("Sms gone to User", HttpStatus.OK);
+    }
+
+    @PostMapping("/send-prescription")
+    public ResponseEntity<?> sendPrescription(@PathVariable Long tokenId){
+        prescriptionService.sendPrescription(tokenId);
+
+        return ResponseEntity.ok("Prescription sent");
     }
 
 }

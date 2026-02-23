@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/doctor/queue")
+@RequestMapping("/api/doctor/queue")
 @PreAuthorize("hasRole('DOCTOR')")
 @Slf4j
 public class DoctorQueueController {
