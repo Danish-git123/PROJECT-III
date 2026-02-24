@@ -101,5 +101,8 @@ public interface PatientTokenRepository extends JpaRepository<PatientToken,Long>
             LocalDateTime createdAt
     );
 
+    int countByDoctorAndStatusIn(Doctor doctor, List<String> statuses);
 
+
+    List<PatientToken> findByDoctorOrderByTokenNumberAsc(Doctor doctor);
 }

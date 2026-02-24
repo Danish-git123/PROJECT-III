@@ -1,6 +1,7 @@
 package net.engineeringdigest.clinicmgm.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.engineeringdigest.clinicmgm.dto.PublicQueueResponse;
 import net.engineeringdigest.clinicmgm.dto.QueueStatusResponse;
 import net.engineeringdigest.clinicmgm.entity.Doctor;
 import net.engineeringdigest.clinicmgm.entity.PatientToken;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,8 +36,8 @@ public class QueueService {
     @Autowired
     private PrescriptionRepository prescriptionRepository;
 
-    @Autowired
-    private TwilioSmsService smsService;
+//    @Autowired
+//    private TwilioSmsService smsService;
 
     @Autowired
     private RedisQueueService redisQueueService;
@@ -79,7 +81,9 @@ public class QueueService {
         int tokenNumber=position;
 
         int avgTime=doctor.getConsultationAvgTime();
-        int estimatedArrival=((position-1)*avgTime+2);
+        int activePatientsAhead=patientTokenRepository.countByDoctorAndStatusIn(doctor,Arrays.asList("ISSUED","ONGOING"));
+
+        int estimatedArrival=(activePatientsAhead*avgTime)+2;
 
         PatientToken token=new PatientToken();
         token.setDoctor(doctor);
@@ -105,7 +109,7 @@ public class QueueService {
         log.info(message);
 
 //  Send SMS (logs + console + Twilio)
-        smsService.sendSms(mobileNumber, message);
+//        smsService.sendSms(mobileNumber, message);
 
         return token;
     }
@@ -287,6 +291,25 @@ public class QueueService {
                 peopleAhead,
                 token.getEstimatedArrivalMinutes()
         );
+    }
+
+    public List<PublicQueueResponse> getPublicQueue(String qrKey) {
+
+        Doctor doctor = doctorRepository
+                .findByQrKey(qrKey)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        List<PatientToken> tokens =
+                patientTokenRepository.findByDoctorOrderByTokenNumberAsc(doctor);
+
+        return tokens.stream()
+                .map(token -> new PublicQueueResponse(
+                        token.getTokenNumber(),
+                        token.getPosition(),
+                        token.getEstimatedArrivalMinutes(),
+                        token.getStatus()
+                ))
+                .collect(Collectors.toList());
     }
 
 

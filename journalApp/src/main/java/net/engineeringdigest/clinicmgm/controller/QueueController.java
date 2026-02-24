@@ -1,5 +1,6 @@
 package net.engineeringdigest.clinicmgm.controller;
 
+import net.engineeringdigest.clinicmgm.dto.PublicQueueResponse;
 import net.engineeringdigest.clinicmgm.dto.QueueStatusResponse;
 import net.engineeringdigest.clinicmgm.dto.QueueTokenRequestDto;
 import net.engineeringdigest.clinicmgm.entity.PatientToken;
@@ -33,11 +34,21 @@ public class QueueController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/status/{tokenId}")
+   /* @GetMapping("/status/{tokenId}")
     public ResponseEntity<?> getQueueStatus(@PathVariable Long tokenId){
         QueueStatusResponse queueStatusForPatient = queueService.getQueueStatusForPatient(tokenId);
 
         return new ResponseEntity<>("Queue:"+"\n"+queueStatusForPatient,HttpStatus.OK);
+    }*/
+
+    @GetMapping("/status/{qrKey}")
+    public ResponseEntity<List<PublicQueueResponse>> getPublicQueue(
+            @PathVariable String qrKey) {
+
+        List<PublicQueueResponse> queue =
+                queueService.getPublicQueue(qrKey);
+
+        return ResponseEntity.ok(queue);
     }
 
 

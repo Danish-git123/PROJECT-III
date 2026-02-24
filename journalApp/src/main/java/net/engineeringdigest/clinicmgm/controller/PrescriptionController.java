@@ -24,7 +24,7 @@ public class PrescriptionController {
         return new ResponseEntity<>("Sms gone to User", HttpStatus.OK);
     }
 
-    @PostMapping("/send-prescription")
+    @PostMapping("/send-prescription/{tokenId}")
     public ResponseEntity<?> sendPrescription(@PathVariable Long tokenId){
         prescriptionService.sendPrescription(tokenId);
 

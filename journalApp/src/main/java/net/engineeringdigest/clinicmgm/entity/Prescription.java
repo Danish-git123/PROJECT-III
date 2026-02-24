@@ -17,7 +17,7 @@ public class Prescription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "token_id", unique = true, nullable = false)
     private PatientToken token;
     @ManyToOne
