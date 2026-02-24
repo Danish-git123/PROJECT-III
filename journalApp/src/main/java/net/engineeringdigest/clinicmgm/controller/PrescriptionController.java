@@ -18,7 +18,7 @@ public class PrescriptionController {
     @Autowired
     private PrescriptionService prescriptionService;
 
-    @PostMapping()
+    /*@PostMapping()
     public ResponseEntity<?> savePrescription(@RequestBody PrescriptionRequest request){
         prescriptionService.savePrescription(request);
         return new ResponseEntity<>("Sms gone to User", HttpStatus.OK);
@@ -28,6 +28,12 @@ public class PrescriptionController {
     public ResponseEntity<?> sendPrescription(@PathVariable Long tokenId){
         prescriptionService.sendPrescription(tokenId);
 
+        return ResponseEntity.ok("Prescription sent");
+    }*/
+
+    @PostMapping("/save-and-send")
+    public ResponseEntity<?> saveAndSend(@RequestBody PrescriptionRequest request) {
+        prescriptionService.saveAndSend(request);
         return ResponseEntity.ok("Prescription sent");
     }
 

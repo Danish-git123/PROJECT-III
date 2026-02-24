@@ -302,12 +302,14 @@ public class QueueService {
         List<PatientToken> tokens =
                 patientTokenRepository.findByDoctorOrderByTokenNumberAsc(doctor);
 
+        boolean queueIsPaused = doctor.isQueuePaused();
         return tokens.stream()
                 .map(token -> new PublicQueueResponse(
                         token.getTokenNumber(),
                         token.getPosition(),
                         token.getEstimatedArrivalMinutes(),
-                        token.getStatus()
+                        token.getStatus(),
+                        queueIsPaused
                 ))
                 .collect(Collectors.toList());
     }

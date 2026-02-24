@@ -63,5 +63,9 @@ public class Doctor {
         this.status = withinWorkingHours ? "AVAILABLE" : "OFFLINE";
     }
 
+    public boolean isQueuePaused(){
+        return "HOLD".equalsIgnoreCase(this.status);
+    }
+
 
 }

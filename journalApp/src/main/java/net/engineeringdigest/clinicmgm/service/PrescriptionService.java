@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import static org.springframework.core.NestedExceptionUtils.buildMessage;
+
 @Service
 @Slf4j
 public class PrescriptionService {
@@ -30,7 +32,7 @@ public class PrescriptionService {
     @Autowired
     private TwilioSmsService smsService;
 
-    public void savePrescription(PrescriptionRequest req){
+    /*public void savePrescription(PrescriptionRequest req){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null || authentication.getPrincipal()==null){
             throw new RuntimeException("Unauthenticated request");
@@ -89,6 +91,57 @@ public class PrescriptionService {
         );
 
         p.setSent(true);
+        prescriptionRepository.save(p);
+    }*/
+
+    public void saveAndSend(PrescriptionRequest req) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null || authentication.getPrincipal()==null){
+            throw new RuntimeException("Unauthenticated request");
+        }
+
+//        doctor id
+        Long doctorId= (Long) authentication.getDetails();
+        Optional<Doctor> doctor=doctorRepository.findById(doctorId);
+
+        if(!doctor.isPresent()){
+            throw new RuntimeException("Doctor Not Found");
+        }
+
+        PatientToken token =
+                patientTokenRepository
+                        .findByDoctorAndStatus(doctor.get(), "ONGOING")
+                        .orElseThrow(() ->
+                                new RuntimeException("No active patient")
+                        );
+
+        Prescription p = prescriptionRepository
+                .findByToken(token)
+                .orElse(new Prescription());
+
+        p.setToken(token);
+        p.setDoctor(token.getDoctor());
+        p.setMobileNumber(token.getMobileNumber());
+
+        p.setDiagnosis(req.getDiagnosis());
+        p.setMedicines(req.getMedicines());
+        p.setInstructions(req.getInstructions());
+
+        String message="Doctor Name: "+p.getDoctor().getUsername()+"\n"
+                +"Prescription Id: "+p.getId()+"\n"
+                +"Diagnosis: "+p.getDiagnosis()+"\n"
+                +"Treatment: "+p.getMedicines()+"\n"
+                +"Instructions: "+p.getInstructions();
+
+        log.info(message);
+
+        smsService.sendSms(
+                p.getMobileNumber(),
+                message
+        );
+
+
         prescriptionRepository.save(p);
     }
 }
