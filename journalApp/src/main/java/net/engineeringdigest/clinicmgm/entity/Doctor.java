@@ -1,6 +1,6 @@
 package net.engineeringdigest.clinicmgm.entity;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
