@@ -9,7 +9,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
+//sfjm
 @Entity
 @Table(name = "doctor")
 @Getter
