@@ -39,8 +39,7 @@ public class QueueService {
 //    @Autowired
 //    private TwilioSmsService smsService;
 
-    @Autowired
-    private RedisQueueService redisQueueService;
+
 
 
     private Doctor getCurrentDoctor(){
